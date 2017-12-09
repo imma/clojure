@@ -4,7 +4,33 @@ function main {
   local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
   source "$shome/script/profile"
 
-  uname -a
+  pkg ensure misc/rlwrap
+
+  mkdir -p "$shome/vendor/clojure-${CLOJURE_VERSION}"
+  pushd "$shome//vendor/clojure-${CLOJURE_VERSION}"
+
+  curl -O https://download.clojure.org/install/clojure-tools-${CLOJURE_VERSION}.tar.gz
+  tar xzf clojure-tools-${CLOJURE_VERSION}.tar.gz
+
+  mkdir -p lib/clojure/libexec
+  cp -f clojure-tools/deps.edn lib/clojure
+  cp -f clojure-tools/clojure-tools-${CLOJURE_VERSION}.jar lib/clojure/libexec
+
+  sed -i -e "s@PREFIX@$shome/vendor/clojure-${CLOJURE_VERSION}/lib/clojure@g" clojure-tools/clojure
+
+  mkdir -p bin
+  cp -f clojure-tools/clojure clojure-tools/clj bin
+
+  cp -f lib/clojure/deps.edn lib/clojure/example-deps.edn
+
+  rm -rf clojure-tools
+  rm -rf clojure-tools-${CLOJURE_VERSION}.tar.gz
+
+  popd
+
+  ln -nfs "clojure-${CLOJURE_VERSION}" "$shome/vendor/clojure"
+
+  clj
 }
 
 main "$@"
